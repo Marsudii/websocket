@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EXAMPLE WEBSOCKET READ AND WRITE MESSAGES</title>
+</head>
+
+<body>
+    <h1>WebSocket Example</h1>
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+    <button id="send" disabled>Send Message</button>
+
+    <h2>Chat History</h2>
+    <div id="chat-history" style="border:1px solid #ccc; padding:10px; max-width:400px; min-height:100px;">
+        <!-- Chat history will appear here -->
+    </div>
+
+    <script>
+        let socket;
+
+        const chatHistory = document.getElementById('chat-history');
+
+        function appendToChat(message, sender = 'Server') {
+            const p = document.createElement('p');
+            p.textContent = `${sender}: ${message}`;
+            chatHistory.appendChild(p);
+        }
+
+        document.getElementById('connect').addEventListener('click', () => {
+            socket = new WebSocket('ws://localhost:3000/ws');
+
+            socket.addEventListener('open', () => {
+                console.log('✅ Connected to server');
+                document.getElementById('disconnect').disabled = false;
+                document.getElementById('send').disabled = false;
+                appendToChat('Connected to server', 'System');
+            });
+
+            socket.addEventListener('message', (event) => {
+                appendToChat(event.data, 'Friend');
+            });
+
+            socket.addEventListener('close', () => {
+                console.log('❌ Disconnected from server');
+                document.getElementById('disconnect').disabled = true;
+                document.getElementById('send').disabled = true;
+                appendToChat('Disconnected', 'System');
+            });
+        });
+
+        document.getElementById('disconnect').addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+
+        document.getElementById('send').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const message = 'Hello, Server!';
+                socket.send(message);
+                appendToChat(message, 'You');
+                console.log(`📤 Sent: ${message}`);
+            }
+        });
+    </script>
+</body>
+
+</html>
